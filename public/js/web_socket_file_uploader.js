@@ -100,7 +100,7 @@ function WebSocketFileUploader(file_container, block_size)
   function deliver_slice(data)
   {
     var edata = window.btoa(data);
-    return wsc.send(edata);
+    return wsc.send("upload=>"+edata);
   }
 
   function calculate_eta()
@@ -129,7 +129,6 @@ function WebSocketFileUploader(file_container, block_size)
 
   function read_slice(start, length) 
   {
-  
     reader = new FileReader();
 
     reader.onabort = onabort;
@@ -144,25 +143,14 @@ function WebSocketFileUploader(file_container, block_size)
   }
 
   function onloadend(event) 
-  {
-    
-    // Deliver block
-    if (deliver_slice(event.target.result) == false) return;
-    file_index += block_size;
+  { 
 
-    // User paused upload
-    if (paused_upload) {
-      file_progress.html('');
-      return;
-    }
-    
-    // User cancelled upload
-    if (cancelled_upload) {    
-      reset_upload();
-      file_progress.html('');
-      uploader.upload_cancelled();
-      return;
-    }
+    // Deliver block
+    if (deliver_slice(event.target.result) == false) {
+	    error('Error delivering data to server');
+	    return;
+	  }
+    file_index += block_size;
 
     calculate_eta();
 
@@ -172,8 +160,8 @@ function WebSocketFileUploader(file_container, block_size)
       // Upload complete
       wsc.close();
       wsc=null;
-       file_buttons.hide();
-       file_browse_button.show();
+      file_buttons.hide();
+      file_browse_button.show();
       file_progress.html('Upload complete');
       uploader.upload_complete();
     }
@@ -246,11 +234,21 @@ function WebSocketFileUploader(file_container, block_size)
       }
       if (query=='upload') {
         var size = parseInt(params.shift());
-        if (file_index<file.size) {
+
+        if (!paused_upload && !cancelled_upload && file_index<file.size) {
           read_slice(file_index, block_size);
-        } else {
-          if (file_index!=size) error('File size mismatch');
-	      }
+        }	
+    
+		    // User paused upload
+		    if (paused_upload) file_progress.html('');
+
+		    // User cancelled upload
+		    if (cancelled_upload) {    
+		      reset_upload();
+		      file_progress.html('');
+		      uploader.upload_cancelled();
+		    }
+
       }
     }
 
@@ -307,6 +305,8 @@ function WebSocketFileUploader(file_container, block_size)
 
     // Cancel upload button
     file_cancel_button.bind('click', {uploader: this}, function (e) { 
+      reset_upload();
+      file_progress.html('');
       cancelled_upload=true;
       return false;
     });
@@ -316,6 +316,7 @@ function WebSocketFileUploader(file_container, block_size)
       paused_upload=true;
       file_pause_button.hide();
       file_resume_button.show();
+      file_progress.html('');
       return false;
     });
 

@@ -36,8 +36,8 @@ EventMachine.run do
     
     ws.onmessage do |message|
 
-      if upload_file['in_progress']            
-        decoded_message = Base64.decode64(message)
+     if upload_file['in_progress'] && message=~/^upload=>(.*)$/i 
+        decoded_message = Base64.decode64($1)
         upload_file['file'].write(decoded_message) 
         upload_file['index'] += decoded_message.size
         deliver("response=>upload||#{upload_file['index']}",ws)
@@ -74,7 +74,7 @@ EventMachine.run do
             upload_file['name'] = args[0]
             upload_file['size'] = args[1].to_i
             upload_file['index'] = args[2].to_i
-            mode = (upload_file['index'] == 0 ? 'w' : 'a')
+            mode = ((upload_file['index'] == 0) ? 'w' : 'a')
             upload_file['file'] = File.new(storage_path+"/"+upload_file['name'], mode)
             if upload_file['file']
               upload_file['in_progress'] = true            
