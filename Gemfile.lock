@@ -6,7 +6,7 @@ GEM
     em-websocket (0.2.0)
       addressable (>= 2.1.1)
       eventmachine (>= 0.12.9)
-    eventmachine (0.12.11)
+    eventmachine (0.12.10)
     rack (1.2.1)
     sinatra (1.1.0)
       rack (~> 1.1)

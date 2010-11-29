@@ -40,6 +40,7 @@ EventMachine.run do
         decoded_message = Base64.decode64(message)
         upload_file['file'].write(decoded_message) 
         upload_file['index'] += decoded_message.size
+        deliver("response=>upload||#{upload_file['index']}",ws)
         if upload_file['index'] >= upload_file['size']
           upload_file['in_progress'] = false 
           upload_file['file'].close()

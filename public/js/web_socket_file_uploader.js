@@ -168,10 +168,7 @@ function WebSocketFileUploader(file_container, block_size)
 
     update_progress_bar();
 
-    if (file_index<file.size) {
-      // Continue upload
-      read_slice(file_index, block_size);
-    } else {
+    if (file_index>=file.size) {
       // Upload complete
       wsc.close();
       wsc=null;
@@ -243,9 +240,17 @@ function WebSocketFileUploader(file_container, block_size)
     if (control.match(/^response$/i)) {
       var query = params.shift();
       if (query=='exist') {
-         file_index = 0;
+        file_index = 0;
         var size = parseInt(params.shift());
-         if (size>0) handle_file_exists_response(size);
+        if (size>0) handle_file_exists_response(size);
+      }
+      if (query=='upload') {
+        var size = parseInt(params.shift());
+        if (file_index<file.size) {
+          read_slice(file_index, block_size);
+        } else {
+          if (file_index!=size) error('File size mismatch');
+	      }
       }
     }
 
