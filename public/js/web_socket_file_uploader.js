@@ -314,6 +314,7 @@ function WebSocketFileUploader(file_container, block_size)
     // Pause upload button
     file_pause_button.bind('click', {uploader: this}, function (e) { 
       paused_upload=true;
+      file_cancel_button.hide();
       file_pause_button.hide();
       file_resume_button.show();
       file_progress.html('');
